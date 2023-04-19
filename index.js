@@ -1,3 +1,5 @@
+console.log("index.js is loading simon ");
+
 import express from "express";
 
 // Konfiguration
