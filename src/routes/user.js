@@ -11,7 +11,7 @@ import User from "../../db/userModel.js";
 
 const router = express.Router();
 
-router.post("/register", (req, res) => {
+router.post("/signup", (req, res) => {
   const {
     name,
     email,
