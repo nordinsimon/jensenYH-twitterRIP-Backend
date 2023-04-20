@@ -12,12 +12,28 @@ import User from "../../db/userModel.js";
 const router = express.Router();
 
 router.post("/register", (req, res) => {
+  const {
+    name,
+    email,
+    password,
+    nickname,
+    about,
+    employment,
+    hometown,
+    webbpage,
+  } = req.body;
   bcrypt
-    .hash(req.body.password, 10)
+    .hash(password, 10)
     .then((hashedPassword) => {
       const user = new User({
-        email: req.body.email,
+        name: name,
+        email: email,
         password: hashedPassword,
+        nickname: nickname,
+        about: about,
+        employment: employment,
+        hometown: hometown,
+        webbpage: webbpage,
       });
       user
         .save()
