@@ -23,22 +23,22 @@ const UserSchema = new mongoose.Schema({
   },
   about: {
     type: String,
-    required: [true, "Please provide a description"],
+    required: [false, "Please provide a description"],
     unique: false,
   },
   employment: {
     type: String,
-    required: [true, "Please provide your employment"],
+    required: [false, "Please provide your employment"],
     unique: false,
   },
   hometown: {
     type: String,
-    required: [true, "Please provide your hometown"],
+    required: [false, "Please provide your hometown"],
     unique: false,
   },
   webbpage: {
     type: String,
-    required: [true, "Please provide your webbpage"],
+    required: [false, "Please provide your webbpage"],
     unique: false,
   },
   date: {
