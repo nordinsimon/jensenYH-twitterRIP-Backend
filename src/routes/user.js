@@ -110,4 +110,20 @@ router.get("/JWT", (req, res) => {
   });
 });
 
+router.get("/all", (req, res) => {
+  User.find()
+    .then((users) => {
+      res.status(200).send({
+        message: "All users",
+        users,
+      });
+    })
+    .catch((e) => {
+      res.status(500).send({
+        message: "Error getting users",
+        e,
+      });
+    });
+});
+
 export default router;
