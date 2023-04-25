@@ -97,7 +97,17 @@ router.post("/login", (req, res) => {
     });
 });
 router.get("/JWT", (req, res) => {
-  const token = req.headers.authorization.split(" ")[1];
+  let token = req.body.token || req.query.token;
+  if (!token) {
+    let x = req.headers.authorization;
+    if (x === undefined) {
+      // Vi hittade ingen token, authorization fail
+      res.sendStatus(401);
+      return;
+    }
+    token = x.split(" ")[1];
+  }
+
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).send({
