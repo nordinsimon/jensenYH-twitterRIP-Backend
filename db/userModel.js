@@ -45,6 +45,61 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  tweets: [
+    {
+      tweet: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      likes: [
+        {
+          user: {
+            type: String,
+            required: false,
+            unique: false,
+          },
+        },
+      ],
+    },
+  ],
+  followers: [
+    {
+      follower: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+    },
+  ],
+  following: [
+    {
+      following: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+    },
+  ],
+  hashtags: [
+    {
+      hashtag: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+      numberOfTimes: {
+        type: Number,
+        required: false,
+        unique: false,
+      },
+    },
+  ],
 });
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);
