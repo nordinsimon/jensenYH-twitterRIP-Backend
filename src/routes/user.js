@@ -44,6 +44,7 @@ router.post("/signup", (req, res) => {
           });
         })
         .catch((error) => {
+          console.log("Error", error);
           res.status(500).send({
             message: "Error creating user",
             error,

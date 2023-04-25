@@ -45,6 +45,7 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
   tweets: [
     {
       tweet: {
@@ -52,7 +53,47 @@ const UserSchema = new mongoose.Schema({
         required: false,
         unique: false,
       },
-      likes: {
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      likes: [
+        {
+          user: {
+            type: String,
+            required: false,
+            unique: false,
+          },
+        },
+      ],
+    },
+  ],
+  followers: [
+    {
+      follower: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+    },
+  ],
+  following: [
+    {
+      following: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+    },
+  ],
+  hashtags: [
+    {
+      hashtag: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+      numberOfTimes: {
         type: Number,
         required: false,
         unique: false,
