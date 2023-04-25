@@ -45,6 +45,20 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  tweets: [
+    {
+      tweet: {
+        type: String,
+        required: false,
+        unique: false,
+      },
+      likes: {
+        type: Number,
+        required: false,
+        unique: false,
+      },
+    },
+  ],
 });
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);
