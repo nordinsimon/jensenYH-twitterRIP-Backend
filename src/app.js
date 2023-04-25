@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { dbConnect } from "../db/dbConnect.js";
 
 import userRoutes from "./routes/user.js";
@@ -16,6 +17,7 @@ const logger = (req, res, next) => {
   next();
 };
 
+app.use(cors());
 app.use(express.json());
 app.use(logger);
 app.use((req, res, next) => {
