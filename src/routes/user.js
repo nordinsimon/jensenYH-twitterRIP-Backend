@@ -127,4 +127,25 @@ router.get("/all", (req, res) => {
     });
 });
 
+router.put("/forgotpassword", (req, res) => {
+  const { email, nickname, newPassword } = req.body;
+
+  User.findOne({ email: email, nickname: nickname })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: "User not found" });
+      }
+
+      bcrypt.hash(newPassword, 10).then((hashedPassword) => {
+        user.password = hashedPassword;
+        user.save().then(() => {
+          res.status(200).send({ message: "Password updated successfully" });
+        });
+      });
+    })
+    .catch((e) => {
+      res.status(500).send({ message: "Server error", e });
+    });
+});
+
 export default router;
