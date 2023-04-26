@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 import User from "../../db/userModel.js";
+import decodeToken from "../decodeToken.js";
 
 const router = express.Router();
 
@@ -58,7 +59,6 @@ router.post("/signup", (req, res) => {
       });
     });
 });
-
 router.post("/login", (req, res) => {
   User.findOne({ email: req.body.email })
 
@@ -96,31 +96,15 @@ router.post("/login", (req, res) => {
       });
     });
 });
-router.get("/JWT", (req, res) => {
-  let token = req.body.token || req.query.token;
-  if (!token) {
-    let x = req.headers.authorization;
-    if (x === undefined) {
-      // Vi hittade ingen token, authorization fail
-      res.sendStatus(401);
-      return;
-    }
-    token = x.split(" ")[1];
-  }
+router.get("/JWT", async (req, res) => {
+  let decoded = await decodeToken(req, res);
+  console.log("decoded", decoded);
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({
-        message: "Unauthorized",
-      });
-    }
-    res.status(200).send({
-      message: "Authorized",
-      decoded,
-    });
+  res.status(200).send({
+    message: "Authorized",
+    decoded,
   });
 });
-
 router.get("/all", (req, res) => {
   User.find()
     .then((users) => {
@@ -136,7 +120,6 @@ router.get("/all", (req, res) => {
       });
     });
 });
-
 router.put("/forgotpassword", (req, res) => {
   const { email, nickname, newPassword } = req.body;
 
