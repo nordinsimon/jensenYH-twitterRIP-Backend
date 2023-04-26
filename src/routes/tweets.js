@@ -1,56 +1,43 @@
 import express from "express";
-import jwt from "jsonwebtoken";
-import * as dotenv from "dotenv";
-dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
+import decodeToken from "../decodeToken.js";
 import User from "../../db/userModel.js";
 
 const router = express.Router();
+router.get("/", (req, res) => {});
 
-router.post("/tweet", (req, res) => {
-  console.log("Tweet", req.body);
+router.post("/tweet", async (req, res) => {
   const { tweet } = req.body;
-  const token = req.headers.authorization.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    console.log("Decoded", decoded);
+  let decoded = await decodeToken(req, res);
 
-    const demail = decoded.email;
-    console.log("Email", demail);
-    User.findOne({ email: demail })
+  console.log("decoded", decoded);
+  const email = decoded.email;
+  console.log("Email", email);
+  User.findOne({ email: email })
 
-      .then((user) => {
-        user.tweets.push({ tweet: tweet, likes: [] });
-        console.log("User", user);
-        user
-          .save()
-          .then((result) => {
-            res.status(201).send({
-              message: "Tweet Created Successfully",
-              result,
-            });
-          })
-          .catch((error) => {
-            res.status(500).send({
-              message: "Error creating tweet",
-              error,
-            });
+    .then((user) => {
+      user.tweets.push({ tweet: tweet, likes: [] });
+      console.log("User", user);
+      user
+        .save()
+        .then((result) => {
+          res.status(201).send({
+            message: "Tweet Created Successfully",
+            result,
           });
-      })
-      .catch((e) => {
-        res.status(500).send({
-          message: "Error finding user",
-          e,
+        })
+        .catch((error) => {
+          res.status(500).send({
+            message: "Error creating tweet",
+            error,
+          });
         });
+    })
+    .catch((e) => {
+      res.status(500).send({
+        message: "Error finding user",
+        e,
       });
-  } catch (e) {
-    console.log("Unauthorized");
-    res.status(401).send({
-      message: "You are not authorized",
-      e,
     });
-  }
 });
 export default router;
