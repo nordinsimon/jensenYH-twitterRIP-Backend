@@ -96,15 +96,16 @@ router.post("/login", (req, res) => {
       });
     });
 });
-router.get("/JWT", async (req, res) => {
-  let decoded = await decodeToken(req, res);
-  console.log("decoded", decoded);
-
+router.get("/JWT", (req, res) => {
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
   res.status(200).send({
     message: "Authorized",
     decoded,
   });
 });
+
+// DONT FORGET TO DELETE THIS ROUTE
 router.get("/all", (req, res) => {
   User.find()
     .then((users) => {
@@ -120,6 +121,28 @@ router.get("/all", (req, res) => {
       });
     });
 });
+
+router.get("/profile", (req, res) => {
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
+  const { email } = req.body;
+  User.findOne({ email: email })
+    .then((user) => {
+      const userToSend = user.toObject();
+      delete userToSend.password;
+      res.status(200).send({
+        message: "User found",
+        userToSend,
+      });
+    })
+    .catch((e) => {
+      res.status(500).send({
+        message: "Error getting user",
+        e,
+      });
+    });
+});
+
 router.put("/forgotpassword", (req, res) => {
   const { email, nickname, newPassword } = req.body;
 
