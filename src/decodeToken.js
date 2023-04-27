@@ -3,10 +3,10 @@ import * as dotenv from "dotenv";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const decodeToken = async (req, res) => {
-  let token = (await req.body.token) || (await req.query.token);
+const decodeToken = (req, res) => {
+  let token = req.body.token || req.query.token;
   if (!token) {
-    let x = await req.headers.authorization;
+    let x = req.headers.authorization;
     if (x === undefined) {
       // Vi hittade ingen token, authorization fail
       res.sendStatus(401);
