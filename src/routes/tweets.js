@@ -77,14 +77,17 @@ router.post("/tweet", (req, res) => {
   const { tweet } = req.body;
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
-  console.log("decoded", decoded);
   const nickname = decoded.nickname;
 
+  let hashtags = [];
   let hashIndex = tweet.indexOf("#");
-  let hashtag = "";
-  if (hashIndex !== -1) {
+  while (hashIndex !== -1) {
     let spaceIndex = tweet.indexOf(" ", hashIndex);
-    hashtag = tweet.substring(hashIndex, spaceIndex);
+    if (spaceIndex === -1) {
+      spaceIndex = tweet.length;
+    }
+    hashtags.push(tweet.substring(hashIndex, spaceIndex));
+    hashIndex = tweet.indexOf("#", spaceIndex);
   }
 
   User.findOne({ nickname: nickname })
@@ -92,13 +95,14 @@ router.post("/tweet", (req, res) => {
       user.tweets.push({ tweet: tweet, nickname: nickname, likes: [] });
 
       const userHashtags = user.hashtags;
-      const existingHashtag = userHashtags.find((h) => h.hashtag === hashtag);
-      if (existingHashtag) {
-        existingHashtag.numberOfTimes++;
-      } else {
-        user.hashtags.push({ hashtag: hashtag, numberOfTimes: 1 });
-      }
-      console.log("User", user);
+      hashtags.forEach((hashtag) => {
+        const existingHashtag = userHashtags.find((h) => h.hashtag === hashtag);
+        if (existingHashtag) {
+          existingHashtag.numberOfTimes++;
+        } else {
+          user.hashtags.push({ hashtag: hashtag, numberOfTimes: 1 });
+        }
+      });
       user
         .save()
         .then((result) => {
