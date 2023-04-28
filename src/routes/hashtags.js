@@ -42,8 +42,49 @@ router.post("/hashtag", (req, res) => {
       });
     });
 });
-
 router.get("/hashtags", (req, res) => {
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
+  const nickaname = decoded.nickname;
+  const allhashtags = [];
+  User.findOne({ nickname: nickaname })
+
+    .then((user) => {
+      console.log("user", user);
+      user.hashtags.forEach((hashtag) => {
+        allhashtags.push(hashtag);
+      });
+      console.log("allhashtags", allhashtags);
+      user.following.forEach((user) => {
+        console.log("user", user);
+        const nickaname = user.followed;
+        User.findOne({ nickname: nickaname })
+          .then((user) => {
+            user.hashtags.forEach((hashtag) => {
+              allhashtags.push(hashtag);
+            });
+            res.status(200).send({
+              message: "Hashtags found",
+              allhashtags,
+            });
+          })
+          .catch((e) => {
+            res.status(530).send({
+              message: "Error finding user",
+              e,
+            });
+          });
+      });
+    })
+    .catch((e) => {
+      res.status(500).send({
+        message: "Error finding user",
+        e,
+      });
+    });
+});
+
+router.get("/allhashtags", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
   User.find({}, "hashtags.hashtag hashtags.numberOfTimes")
