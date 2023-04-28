@@ -1,15 +1,51 @@
 import express from "express";
-import jwt from "jsonwebtoken";
-import * as dotenv from "dotenv";
-dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
+import decodeToken from "../decodeToken.js";
 import User from "../../db/userModel.js";
 
 const router = express.Router();
 
+router.post("/hashtag", (req, res) => {
+  console.log("Adding hashtag");
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
+  const { hashtag } = req.body;
+  User.findOne({ nickname: decoded.nickname })
+    .then((user) => {
+      const userHashtags = user.hashtags;
+      const existingHashtag = userHashtags.find((h) => h.hashtag === hashtag);
+      if (existingHashtag) {
+        existingHashtag.numberOfTimes++;
+      } else {
+        user.hashtags.push({ hashtag: hashtag, numberOfTimes: 1 });
+      }
+      user
+
+        .save()
+        .then((result) => {
+          res.status(201).send({
+            message: "Hashtag Created Successfully",
+            result,
+          });
+        })
+        .catch((error) => {
+          res.status(500).send({
+            message: "Error creating hashtag",
+            error,
+          });
+        });
+    })
+    .catch((e) => {
+      res.status(500).send({
+        message: "Error finding user",
+        e,
+      });
+    });
+});
+
 router.get("/hashtags", (req, res) => {
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
   User.find({}, "hashtags.hashtag hashtags.numberOfTimes")
     .then((users) => {
       const hashtags = users.reduce((acc, user) => {
