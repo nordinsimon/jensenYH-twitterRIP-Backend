@@ -61,4 +61,50 @@ router.post("/tweet", (req, res) => {
       });
     });
 });
+
+router.post("/like", (req, res) => {
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
+  const emailLiker = decoded.email;
+  const { tweetId, email } = req.body;
+
+  User.findOne({ email: email }).then((user) => {
+    console.log("User", user);
+    try {
+      const userObj = user.toObject();
+      let tweets = userObj.tweets;
+      let tweet = tweets.find((tweet) => tweet._id == tweetId);
+      if (tweet.likes.find((like) => like.user == emailLiker)) {
+        res.status(400).send({
+          message: "Tweet already liked",
+        });
+        return;
+      } else {
+        let index = tweets.indexOf(tweet);
+        tweet.likes.push(emailLiker);
+        user.tweets[index].likes.push({ user: emailLiker });
+        user
+          .save()
+          .then((result) => {
+            res.status(201).send({
+              message: "Tweet Liked Successfully",
+              result,
+            });
+          })
+          .catch((error) => {
+            res.status(500).send({
+              message: "Error liking tweet",
+              error,
+            });
+          });
+      }
+    } catch (e) {
+      res.status(404).send({
+        message: "User or tweet not found",
+        e,
+      });
+    }
+  });
+});
+
 export default router;
