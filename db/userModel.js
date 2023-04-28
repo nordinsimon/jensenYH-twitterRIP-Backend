@@ -79,7 +79,7 @@ const UserSchema = new mongoose.Schema({
   ],
   following: [
     {
-      following: {
+      followed: {
         type: String,
         required: false,
         unique: false,
