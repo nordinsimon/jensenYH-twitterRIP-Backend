@@ -28,6 +28,51 @@ router.get("/fromUser", (req, res) => {
     });
 });
 
+router.get("/feed", (req, res) => {
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
+  const nickname = decoded.nickname;
+  const allTweets = [];
+  User.findOne({ nickname: nickname })
+    .then((user) => {
+      console.log("user", user);
+      user.tweets.forEach((tweet) => {
+        allTweets.push(tweet);
+      });
+      user.following.forEach((user) => {
+        const nickname = user.toObject().followed;
+        console.log("nickname", nickname);
+        User.findOne({ nickname: nickname })
+          .then((user) => {
+            user.tweets.forEach((tweet) => {
+              allTweets.push(tweet);
+            });
+
+            allTweets.sort((a, b) => {
+              return new Date(b.date) - new Date(a.date);
+            });
+            res.status(200).send({
+              message: "Feed Found",
+              allTweets,
+            });
+          })
+
+          .catch((e) => {
+            res.status(500).send({
+              message: "Error finding user",
+              e,
+            });
+          });
+      });
+    })
+    .catch((e) => {
+      res.status(500).send({
+        message: "Error finding user",
+        e,
+      });
+    });
+});
+
 router.post("/tweet", (req, res) => {
   const { tweet } = req.body;
   let decoded = decodeToken(req, res);
@@ -44,7 +89,7 @@ router.post("/tweet", (req, res) => {
 
   User.findOne({ nickname: nickname })
     .then((user) => {
-      user.tweets.push({ tweet: tweet, likes: [] });
+      user.tweets.push({ tweet: tweet, nickname: nickname, likes: [] });
 
       const userHashtags = user.hashtags;
       const existingHashtag = userHashtags.find((h) => h.hashtag === hashtag);
