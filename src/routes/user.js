@@ -164,4 +164,56 @@ router.put("/forgotpassword", (req, res) => {
     });
 });
 
+router.post("/follow", (req, res) => {
+  let decoded = decodeToken(req, res);
+  if (decoded === undefined) return;
+  const toBeFollowedNickname = req.body.nickname;
+  const toFollowNickname = decoded.nickname;
+  let response = [];
+  User.findOne({ nickname: toBeFollowedNickname })
+    .then((user) => {
+      if (
+        user.followers.find(
+          (follower) => follower.follower === toFollowNickname
+        )
+      ) {
+        console.log("User", user);
+        return res
+          .status(400)
+          .send({ message: "User is already being followed" });
+      } else {
+        console.log("User", user);
+        user.followers.push({ follower: toFollowNickname });
+        user.save().then(() => {
+          response.push({ message: "User followed successfully" });
+
+          User.findOne({ nickname: toFollowNickname })
+            .then((user) => {
+              if (
+                user.following.find(
+                  (followed) => followed.followed === toBeFollowedNickname
+                )
+              ) {
+                return res
+                  .status(400)
+                  .send({ message: "You are already following the user" });
+              } else {
+                user.following.push({ followed: toBeFollowedNickname });
+                user.save().then(() => {
+                  response.push({ message: "User followed successfully" });
+                  res.status(200).send(response);
+                });
+              }
+            })
+            .catch((e) => {
+              res.status(500).send({ message: "Server error", e });
+            });
+        });
+      }
+    })
+    .catch((e) => {
+      res.status(400).send({ message: "No nickaname", e });
+    });
+});
+
 export default router;
