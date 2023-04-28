@@ -72,7 +72,7 @@ router.post("/login", (req, res) => {
             });
           }
           const token = jwt.sign(
-            { id: user._id, email: user.email },
+            { id: user._id, email: user.email, nickname: user.nickname },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
           );
@@ -125,8 +125,8 @@ router.get("/all", (req, res) => {
 router.get("/profile", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
-  const { email } = req.body;
-  User.findOne({ email: email })
+  const { nickname } = req.body;
+  User.findOne({ nickname: nickname })
     .then((user) => {
       const userToSend = user.toObject();
       delete userToSend.password;
@@ -136,8 +136,8 @@ router.get("/profile", (req, res) => {
       });
     })
     .catch((e) => {
-      res.status(500).send({
-        message: "Error getting user",
+      res.status(404).send({
+        message: "No User Found",
         e,
       });
     });

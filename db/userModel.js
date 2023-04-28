@@ -59,7 +59,7 @@ const UserSchema = new mongoose.Schema({
       },
       likes: [
         {
-          user: {
+          nickname: {
             type: String,
             required: false,
             unique: false,

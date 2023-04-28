@@ -7,15 +7,16 @@ const router = express.Router();
 router.get("/fromUser", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
-  const { email } = req.body;
-  console.log("Email", email);
-  User.findOne({ email: email })
+  const { nickname } = req.body;
+  User.findOne({ nickname: nickname })
     .then((user) => {
       console.log("User", user);
       const userObj = user.toObject();
+      let nickname = userObj.nickname;
       let tweets = userObj.tweets;
       res.status(200).send({
         message: "User Found",
+        nickname,
         tweets,
       });
     })
@@ -32,9 +33,8 @@ router.post("/tweet", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
   console.log("decoded", decoded);
-  const email = decoded.email;
-  console.log("Email", email);
-  User.findOne({ email: email })
+  const nickname = decoded.nickname;
+  User.findOne({ nickname: nickname })
 
     .then((user) => {
       user.tweets.push({ tweet: tweet, likes: [] });
@@ -42,9 +42,12 @@ router.post("/tweet", (req, res) => {
       user
         .save()
         .then((result) => {
+          let nickname = result.nickname;
+          let tweets = result.tweets;
           res.status(201).send({
             message: "Tweet Created Successfully",
-            result,
+            nickname,
+            tweets,
           });
         })
         .catch((error) => {
@@ -65,24 +68,24 @@ router.post("/tweet", (req, res) => {
 router.post("/like", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
-  const emailLiker = decoded.email;
-  const { tweetId, email } = req.body;
+  const nicknameLiker = decoded.nickname;
+  const { tweetId, nickname } = req.body;
 
-  User.findOne({ email: email }).then((user) => {
+  User.findOne({ nickname: nickname }).then((user) => {
     console.log("User", user);
     try {
       const userObj = user.toObject();
       let tweets = userObj.tweets;
       let tweet = tweets.find((tweet) => tweet._id == tweetId);
-      if (tweet.likes.find((like) => like.user == emailLiker)) {
+      if (tweet.likes.find((like) => like.nickname == nicknameLiker)) {
         res.status(400).send({
           message: "Tweet already liked",
         });
         return;
       } else {
         let index = tweets.indexOf(tweet);
-        tweet.likes.push(emailLiker);
-        user.tweets[index].likes.push({ user: emailLiker });
+        tweet.likes.push(nicknameLiker);
+        user.tweets[index].likes.push({ nickname: nicknameLiker });
         user
           .save()
           .then((result) => {
