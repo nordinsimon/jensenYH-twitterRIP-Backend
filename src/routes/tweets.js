@@ -34,10 +34,25 @@ router.post("/tweet", (req, res) => {
   if (decoded === undefined) return;
   console.log("decoded", decoded);
   const nickname = decoded.nickname;
-  User.findOne({ nickname: nickname })
 
+  let hashIndex = tweet.indexOf("#");
+  let hashtag = "";
+  if (hashIndex !== -1) {
+    let spaceIndex = tweet.indexOf(" ", hashIndex);
+    hashtag = tweet.substring(hashIndex, spaceIndex);
+  }
+
+  User.findOne({ nickname: nickname })
     .then((user) => {
       user.tweets.push({ tweet: tweet, likes: [] });
+
+      const userHashtags = user.hashtags;
+      const existingHashtag = userHashtags.find((h) => h.hashtag === hashtag);
+      if (existingHashtag) {
+        existingHashtag.numberOfTimes++;
+      } else {
+        user.hashtags.push({ hashtag: hashtag, numberOfTimes: 1 });
+      }
       console.log("User", user);
       user
         .save()
