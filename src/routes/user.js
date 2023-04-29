@@ -122,10 +122,10 @@ router.get("/all", (req, res) => {
     });
 });
 
-router.get("/profile", (req, res) => {
+router.get("/profile/:nickname", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
-  const { nickname } = req.body;
+  const { nickname } = req.params;
   User.findOne({ nickname: nickname })
     .then((user) => {
       const userToSend = user.toObject();
