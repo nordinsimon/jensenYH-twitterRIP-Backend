@@ -130,10 +130,7 @@ router.get("/profile/:nickname", (req, res) => {
     .then((user) => {
       const userToSend = user.toObject();
       delete userToSend.password;
-      res.status(200).send({
-        message: "User found",
-        userToSend,
-      });
+      res.status(200).send(userToSend);
     })
     .catch((e) => {
       res.status(404).send({
