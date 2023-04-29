@@ -4,10 +4,10 @@ import decodeToken from "../decodeToken.js";
 import User from "../../db/userModel.js";
 
 const router = express.Router();
-router.get("/fromUser", (req, res) => {
+router.get("/fromUser/:nickname", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
-  const { nickname } = req.body;
+  const { nickname } = req.params;
   User.findOne({ nickname: nickname })
     .then((user) => {
       console.log("User", user);
