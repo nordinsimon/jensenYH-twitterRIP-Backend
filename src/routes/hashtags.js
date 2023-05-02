@@ -47,34 +47,62 @@ router.get("/hashtags", (req, res) => {
   if (decoded === undefined) return;
   const nickaname = decoded.nickname;
   const allhashtags = [];
-  User.findOne({ nickname: nickaname })
+  const topHashtags = [];
 
+  const sortHashtags = (allhashtags) => {
+    console.log("sortHashtags");
+    allhashtags.sort((a, b) => b.numberOfTimes - a.numberOfTimes);
+    for (let i = 0; i < 5; i++) {
+      if (allhashtags[i] === undefined) i = 5;
+      topHashtags.push(allhashtags[i]);
+    }
+  };
+
+  User.findOne({ nickname: nickaname })
     .then((user) => {
       console.log("user", user);
       user.hashtags.forEach((hashtag) => {
         allhashtags.push(hashtag);
       });
-      console.log("allhashtags", allhashtags);
-      user.following.forEach((user) => {
-        console.log("user", user);
-        const nickaname = user.followed;
-        User.findOne({ nickname: nickaname })
-          .then((user) => {
-            user.hashtags.forEach((hashtag) => {
-              allhashtags.push(hashtag);
+
+      if (user.following.length === 0) {
+        sortHashtags(allhashtags);
+        console.log("FÖRSTA IF");
+        console.log("topHashtags", topHashtags);
+        res.status(200).send({
+          message: "Hashtags found",
+          topHashtags,
+        });
+      } else {
+        console.log("allhashtags", allhashtags);
+        user.following.forEach((user) => {
+          console.log("user", user);
+          const nickaname = user.followed;
+          User.findOne({ nickname: nickaname })
+            .then((user) => {
+              user.hashtags.forEach((hashtag) => {
+                allhashtags.push(hashtag);
+              });
+
+              sortHashtags(allhashtags);
+              console.log("ANDRA IF");
+              console.log("allhashtags", allhashtags);
+              console.log("topHashtags", topHashtags);
+
+              res.status(200).send({
+                message: "Hashtags found",
+                topHashtags,
+              });
+            })
+
+            .catch((e) => {
+              res.status(530).send({
+                message: "Error finding user",
+                e,
+              });
             });
-            res.status(200).send({
-              message: "Hashtags found",
-              allhashtags,
-            });
-          })
-          .catch((e) => {
-            res.status(530).send({
-              message: "Error finding user",
-              e,
-            });
-          });
-      });
+        });
+      }
     })
     .catch((e) => {
       res.status(500).send({
