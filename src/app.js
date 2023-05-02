@@ -5,6 +5,7 @@ import { dbConnect } from "../db/dbConnect.js";
 import userRoutes from "./routes/user.js";
 import tweetRoutes from "./routes/tweets.js";
 import hashtagRoutes from "./routes/hashtags.js";
+import searchRoutes from "./routes/search.js";
 
 dbConnect();
 
@@ -32,5 +33,6 @@ app.use((req, res, next) => {
 app.use("/user", userRoutes);
 app.use("/tweets", tweetRoutes);
 app.use("/trending", hashtagRoutes);
+app.use("/search", searchRoutes);
 
 export { app };
