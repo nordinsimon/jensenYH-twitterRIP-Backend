@@ -53,8 +53,9 @@ router.get("/hashtags", (req, res) => {
     console.log("sortHashtags");
     allhashtags.sort((a, b) => b.numberOfTimes - a.numberOfTimes);
     for (let i = 0; i < 5; i++) {
-      if (allhashtags[i] === undefined) i = 5;
-      topHashtags.push(allhashtags[i]);
+      if (allhashtags[i] !== undefined) {
+        topHashtags.push(allhashtags[i]);
+      }
     }
   };
 
