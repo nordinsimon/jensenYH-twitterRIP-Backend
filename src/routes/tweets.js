@@ -39,31 +39,38 @@ router.get("/feed", (req, res) => {
       user.tweets.forEach((tweet) => {
         allTweets.push(tweet);
       });
-      user.following.forEach((user) => {
-        const nickname = user.toObject().followed;
-        console.log("nickname", nickname);
-        User.findOne({ nickname: nickname })
-          .then((user) => {
-            user.tweets.forEach((tweet) => {
-              allTweets.push(tweet);
-            });
+      if (user.following.length === 0) {
+        res.status(200).send({
+          message: "Feed Found",
+          allTweets,
+        });
+      } else {
+        user.following.forEach((user) => {
+          const nickname = user.toObject().followed;
+          console.log("nickname", nickname);
+          User.findOne({ nickname: nickname })
+            .then((user) => {
+              user.tweets.forEach((tweet) => {
+                allTweets.push(tweet);
+              });
 
-            allTweets.sort((a, b) => {
-              return new Date(b.date) - new Date(a.date);
-            });
-            res.status(200).send({
-              message: "Feed Found",
-              allTweets,
-            });
-          })
+              allTweets.sort((a, b) => {
+                return new Date(b.date) - new Date(a.date);
+              });
+              res.status(200).send({
+                message: "Feed Found",
+                allTweets,
+              });
+            })
 
-          .catch((e) => {
-            res.status(500).send({
-              message: "Error finding user",
-              e,
+            .catch((e) => {
+              res.status(500).send({
+                message: "Error finding user",
+                e,
+              });
             });
-          });
-      });
+        });
+      }
     })
     .catch((e) => {
       res.status(500).send({
