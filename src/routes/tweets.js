@@ -29,13 +29,13 @@ router.get("/fromUser/:nickname", (req, res) => {
 });
 
 router.get("/feed", (req, res) => {
+  console.log("INNE I FEED");
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
   const nickname = decoded.nickname;
   const allTweets = [];
   User.findOne({ nickname: nickname })
     .then((user) => {
-      console.log("user", user);
       user.tweets.forEach((tweet) => {
         allTweets.push(tweet);
       });
@@ -53,14 +53,6 @@ router.get("/feed", (req, res) => {
               user.tweets.forEach((tweet) => {
                 allTweets.push(tweet);
               });
-
-              allTweets.sort((a, b) => {
-                return new Date(b.date) - new Date(a.date);
-              });
-              res.status(200).send({
-                message: "Feed Found",
-                allTweets,
-              });
             })
 
             .catch((e) => {
@@ -69,6 +61,14 @@ router.get("/feed", (req, res) => {
                 e,
               });
             });
+        });
+        allTweets.sort((a, b) => {
+          return new Date(b.date) - new Date(a.date);
+        });
+        console.log("SENDSTATUS 200 ELSE");
+        res.status(200).send({
+          message: "Feed Found",
+          allTweets,
         });
       }
     })
