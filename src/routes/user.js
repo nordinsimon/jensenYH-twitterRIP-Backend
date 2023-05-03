@@ -126,11 +126,28 @@ router.get("/profile/:nickname", (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
   const { nickname } = req.params;
+
   User.findOne({ nickname: nickname })
     .then((user) => {
       const userToSend = user.toObject();
       delete userToSend.password;
-      res.status(200).send(userToSend);
+
+      let isFollowing = false;
+      if (userToSend.followers !== undefined) {
+        userToSend.followers.forEach((follower) => {
+          if (follower.follower === decoded.nickname) {
+            isFollowing = true;
+          }
+        });
+      }
+      const logedInUser = decoded.nickname;
+
+      res.status(200).send({
+        message: "User found",
+        isFollowing,
+        logedInUser,
+        userToSend,
+      });
     })
     .catch((e) => {
       res.status(404).send({
