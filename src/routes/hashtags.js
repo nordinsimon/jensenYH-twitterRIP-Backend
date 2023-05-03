@@ -68,8 +68,6 @@ router.get("/hashtags", (req, res) => {
 
       if (user.following.length === 0) {
         sortHashtags(allhashtags);
-        console.log("FÖRSTA IF");
-        console.log("topHashtags", topHashtags);
         res.status(200).send({
           message: "Hashtags found",
           topHashtags,
@@ -77,31 +75,24 @@ router.get("/hashtags", (req, res) => {
       } else {
         console.log("allhashtags", allhashtags);
         user.following.forEach((user) => {
-          console.log("user", user);
           const nickaname = user.followed;
           User.findOne({ nickname: nickaname })
             .then((user) => {
               user.hashtags.forEach((hashtag) => {
                 allhashtags.push(hashtag);
               });
-
-              sortHashtags(allhashtags);
-              console.log("ANDRA IF");
-              console.log("allhashtags", allhashtags);
-              console.log("topHashtags", topHashtags);
-
-              res.status(200).send({
-                message: "Hashtags found",
-                topHashtags,
-              });
             })
-
             .catch((e) => {
               res.status(530).send({
                 message: "Error finding user",
                 e,
               });
             });
+        });
+        sortHashtags(allhashtags);
+        res.status(200).send({
+          message: "Hashtags found",
+          topHashtags,
         });
       }
     })
