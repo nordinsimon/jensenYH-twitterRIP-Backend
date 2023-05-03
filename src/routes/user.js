@@ -140,12 +140,10 @@ router.get("/profile/:nickname", (req, res) => {
           }
         });
       }
-      const logedInUser = decoded.nickname;
 
       res.status(200).send({
         message: "User found",
         isFollowing,
-        logedInUser,
         userToSend,
       });
     })
