@@ -193,6 +193,11 @@ router.post("/follow", (req, res) => {
   const toBeFollowedNickname = req.body.nickname;
   const toFollowNickname = decoded.nickname;
   let response = [];
+  if (toBeFollowedNickname === toFollowNickname) {
+    return res
+      .status(400)
+      .send({ message: "You cannot follow yourself, silly" });
+  }
   User.findOne({ nickname: toBeFollowedNickname })
     .then((user) => {
       if (
