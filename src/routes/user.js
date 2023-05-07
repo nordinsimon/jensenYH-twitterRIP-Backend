@@ -13,51 +13,62 @@ import decodeToken from "../decodeToken.js";
 const router = express.Router();
 
 router.post("/signup", (req, res) => {
-  const {
-    name,
-    email,
-    password,
-    nickname,
-    about,
-    employment,
-    hometown,
-    webbpage,
-  } = req.body;
-  bcrypt
-    .hash(password, 10)
-    .then((hashedPassword) => {
-      const user = new User({
-        name: name,
-        email: email,
-        password: hashedPassword,
-        nickname: nickname,
-        about: about,
-        employment: employment,
-        hometown: hometown,
-        webbpage: webbpage,
-      });
-      user
-        .save()
-        .then((result) => {
-          res.status(201).send({
-            message: "User Created Successfully",
-            result,
-          });
-        })
-        .catch((error) => {
-          console.log("Error", error);
-          res.status(500).send({
-            message: "Error creating user",
-            error,
-          });
-        });
-    })
-    .catch((e) => {
-      res.status(500).send({
-        message: "Password was not hashed successfully",
-        e,
-      });
+  console.log("req.files", req.files);
+  if (!req.files) {
+    return res.status(400).send({
+      message: "No files were uploaded",
     });
+  } else {
+    const {
+      name,
+      email,
+      password,
+      nickname,
+      about,
+      employment,
+      hometown,
+      webbpage,
+    } = req.body;
+
+    const { profilePicture } = req.files;
+    profilePicture.mv(`public/images/${nickname}.png`);
+
+    bcrypt
+      .hash(password, 10)
+      .then((hashedPassword) => {
+        const user = new User({
+          name: name,
+          email: email,
+          password: hashedPassword,
+          nickname: nickname,
+          about: about,
+          employment: employment,
+          hometown: hometown,
+          webbpage: webbpage,
+        });
+        user
+          .save()
+          .then((result) => {
+            res.status(201).send({
+              message: "User Created Successfully",
+              result,
+            });
+          })
+          .catch((error) => {
+            console.log("Error", error);
+            res.status(500).send({
+              message: "Error creating user",
+              error,
+            });
+          });
+      })
+      .catch((e) => {
+        res.status(500).send({
+          message: "Password was not hashed successfully",
+          e,
+        });
+      });
+  }
 });
 router.post("/login", (req, res) => {
   User.findOne({ email: req.body.email })

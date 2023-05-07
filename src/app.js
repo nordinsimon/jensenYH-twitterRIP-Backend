@@ -1,5 +1,7 @@
 import express from "express";
+import fileUpload from "express-fileupload";
 import cors from "cors";
+
 import { dbConnect } from "../db/dbConnect.js";
 
 import userRoutes from "./routes/user.js";
@@ -19,8 +21,11 @@ const logger = (req, res, next) => {
   next();
 };
 
-app.use(cors());
+app.use(fileUpload({ createParentPath: true }));
+app.use(express.static("public"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 app.use(logger);
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
