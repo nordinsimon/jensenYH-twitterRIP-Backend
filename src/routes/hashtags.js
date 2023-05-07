@@ -42,16 +42,16 @@ router.post("/hashtag", (req, res) => {
       });
     });
 });
-router.get("/hashtags", (req, res) => {
+router.get("/hashtags", async (req, res) => {
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
-  const nickaname = decoded.nickname;
+  const nickname = decoded.nickname;
   const allhashtags = [];
   const topHashtags = [];
 
   const sortHashtags = (allhashtags) => {
-    console.log("sortHashtags");
     allhashtags.sort((a, b) => b.numberOfTimes - a.numberOfTimes);
+
     for (let i = 0; i < 5; i++) {
       if (allhashtags[i] !== undefined) {
         topHashtags.push(allhashtags[i]);
@@ -59,49 +59,42 @@ router.get("/hashtags", (req, res) => {
     }
   };
 
-  User.findOne({ nickname: nickaname })
-    .then((user) => {
-      console.log("user", user);
-      user.hashtags.forEach((hashtag) => {
-        allhashtags.push(hashtag);
-      });
+  try {
+    const user = await User.findOne({ nickname: nickname });
 
-      if (user.following.length === 0) {
-        sortHashtags(allhashtags);
-        res.status(200).send({
-          message: "Hashtags found",
-          topHashtags,
-        });
-      } else {
-        console.log("allhashtags", allhashtags);
-        user.following.forEach((user) => {
-          const nickaname = user.followed;
-          User.findOne({ nickname: nickaname })
-            .then((user) => {
-              user.hashtags.forEach((hashtag) => {
-                allhashtags.push(hashtag);
-              });
-            })
-            .catch((e) => {
-              res.status(530).send({
-                message: "Error finding user",
-                e,
-              });
-            });
-        });
-        sortHashtags(allhashtags);
-        res.status(200).send({
-          message: "Hashtags found",
-          topHashtags,
-        });
-      }
-    })
-    .catch((e) => {
-      res.status(500).send({
-        message: "Error finding user",
-        e,
+    user.hashtags.forEach((hashtag) => {
+      allhashtags.push(hashtag);
+    });
+
+    const promises = user.following.map(async (user) => {
+      const nickname = user.followed;
+      const followingUser = await User.findOne({ nickname: nickname });
+      followingUser.hashtags.forEach((hashtag) => {
+        if (allhashtags.find((h) => h.hashtag === hashtag.hashtag)) {
+          const existingHashtag = allhashtags.find(
+            (h) => h.hashtag === hashtag.hashtag
+          );
+          existingHashtag.numberOfTimes += hashtag.numberOfTimes;
+        } else {
+          allhashtags.push(hashtag);
+        }
       });
     });
+
+    await Promise.all(promises);
+
+    sortHashtags(allhashtags);
+
+    res.status(200).send({
+      message: "Hashtags found",
+      topHashtags,
+    });
+  } catch (e) {
+    res.status(500).send({
+      message: "Error finding user",
+      e,
+    });
+  }
 });
 
 router.get("/allhashtags", (req, res) => {
