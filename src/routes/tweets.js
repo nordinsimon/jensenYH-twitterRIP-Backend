@@ -28,56 +28,43 @@ router.get("/fromUser/:nickname", (req, res) => {
     });
 });
 
-router.get("/feed", (req, res) => {
+router.get("/feed", async (req, res) => {
   console.log("INNE I FEED");
   let decoded = decodeToken(req, res);
   if (decoded === undefined) return;
   const nickname = decoded.nickname;
-  const allTweets = [];
-  User.findOne({ nickname: nickname })
-    .then((user) => {
-      user.tweets.forEach((tweet) => {
-        allTweets.push(tweet);
-      });
-      if (user.following.length === 0) {
-        res.status(200).send({
-          message: "Feed Found",
-          allTweets,
-        });
-      } else {
-        user.following.forEach((user) => {
-          const nickname = user.toObject().followed;
-          console.log("nickname", nickname);
-          User.findOne({ nickname: nickname })
-            .then((user) => {
-              user.tweets.forEach((tweet) => {
-                allTweets.push(tweet);
-              });
-            })
 
-            .catch((e) => {
-              res.status(500).send({
-                message: "Error finding user",
-                e,
-              });
-            });
-        });
-        allTweets.sort((a, b) => {
-          return new Date(b.date) - new Date(a.date);
-        });
-        console.log("SENDSTATUS 200 ELSE");
-        res.status(200).send({
-          message: "Feed Found",
-          allTweets,
-        });
-      }
-    })
-    .catch((e) => {
-      res.status(500).send({
-        message: "Error finding user",
-        e,
-      });
+  try {
+    const currentUser = await User.findOne({ nickname: nickname });
+    const allTweets = [...currentUser.tweets];
+    const following = currentUser.following;
+
+    const promises = following.map(async (user) => {
+      const nickname = user.toObject().followed;
+      console.log("nickname", nickname);
+
+      const followingUser = await User.findOne({ nickname: nickname });
+      allTweets.push(...followingUser.tweets);
     });
+
+    await Promise.all(promises);
+    console.log("Sorting tweets");
+    allTweets.sort((a, b) => {
+      return new Date(b.date) - new Date(a.date);
+    });
+
+    console.log("SENDSTATUS");
+    res.status(200).send({
+      message: "Feed Found",
+      allTweets,
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send({
+      message: "Error finding user",
+      e,
+    });
+  }
 });
 
 router.post("/tweet", (req, res) => {
